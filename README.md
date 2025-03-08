@@ -10,7 +10,8 @@ pip install poetry
 
 ### 2️⃣ Clone the repository:
 
-git clone https://github.com/yourname/pubmed-fetcher.git
+git clone https://github.com/yo
+urname/pubmed-fetcher.git
 cd pubmed-fetcher
 3️⃣ Install dependencies:
 
