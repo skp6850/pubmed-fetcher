@@ -1,19 +1,19 @@
-[project]
-name = "pubmed-fetcher"
+[tool.poetry]
+name = "pubmed-fetcher-sk2002"
 version = "0.1.0"
-description = "A tool by Sanjay."
-authors = [
-    {name = "sxnjayy",email = "104524087+skp6850@users.noreply.github.com"}
-]
-license = {text = "Nil"}
+description = "A tool by Sanjay for fetching papers from PubMed"
+authors = ["sxnjayy <104524087+skp6850@users.noreply.github.com>"]  # 🔹 Fix: Authors must be a string
+license = "MIT"
 readme = "README.md"
-requires-python = ">=3.12"
-dependencies = [
-    "requests (>=2.32.3,<3.0.0)",
-    "pandas (>=2.2.3,<3.0.0)",
-    "tqdm (>=4.67.1,<5.0.0)",
-    "pytest (>=8.3.5,<9.0.0)"
-]
+packages = [{ include = "pubmed_fetcher" }]
+
+[tool.poetry.dependencies]
+python = ">=3.12"  #
+requests = ">=2.32.3,<3.0.0"
+pandas = ">=2.2.3,<3.0.0"
+tqdm = ">=4.67.1,<5.0.0"
+pytest = ">=8.3.5,<9.0.0"
+biopython = ">=1.81,<2.0.0"
 
 [tool.poetry.scripts]
 get-papers-list = "pubmed_fetcher.cli:main"

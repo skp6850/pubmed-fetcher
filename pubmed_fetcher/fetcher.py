@@ -1,65 +1,98 @@
-import requests
+import logging
+from Bio import Entrez
+import xml.etree.ElementTree as ET
 import pandas as pd
 import re
 
-SEARCH_API = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
-FETCH_API = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi"
+# Set your email (mandatory for using Entrez)
+Entrez.email = "skp68500@gmail.com"
+API_KEY = "a30a3cdded67bc4c65592abfad40aa57b509"  # Optional but recommended
 
-def fetch_paper_ids(query: str, max_results: int = 10):
-    """Fetch PubMed paper IDs based on a search query."""
-    params = {"db": "pubmed", "term": query, "retmode": "json", "retmax": max_results}
-    response = requests.get(SEARCH_API, params=params)
-    response.raise_for_status()
-    return response.json().get("esearchresult", {}).get("idlist", [])
+def search_pubmed(query: str, start_year: int, end_year: int = None, max_results: int = 100) -> list:
+    """Search PubMed for articles published in a specific year or date range and return a list of PMIDs."""
+    try:
+        if not end_year:
+            end_year = start_year  # If only one year is provided, search for that year only.
 
-def fetch_paper_details(paper_ids):
-    """Fetch paper details including title, publication date, and authors."""
-    if not paper_ids:
+        date_filter = f'("{start_year}/01/01"[Date - Publication] : "{end_year}/12/31"[Date - Publication])'
+        full_query = f"{query} AND {date_filter}"  # Adds date filter to query
+
+        params = {
+            "db": "pubmed",
+            "term": full_query,
+            "retmax": max_results,  # Fetch up to 100 results
+            "retmode": "xml",
+            "api_key": API_KEY
+        }
+        handle = Entrez.esearch(**params)
+        records = Entrez.read(handle)
+
+        return records["IdList"]
+
+    except Exception as e:
+        logging.error(f"Error while fetching data: {e}")
         return []
 
-    params = {"db": "pubmed", "id": ",".join(paper_ids), "retmode": "json"}
-    response = requests.get(FETCH_API, params=params)
-    response.raise_for_status()
-    data = response.json().get("result", {})
 
-    papers = []
-    for paper_id in paper_ids:
-        paper = data.get(paper_id, {})
-        authors = paper.get("authors", [])
-        company_authors, company_affiliations = extract_company_authors(authors)
 
-        papers.append({
-            "PubmedID": paper_id,
-            "Title": paper.get("title", "N/A"),
-            "Publication Date": paper.get("pubdate", "N/A"),
-            "Non-academic Author(s)": ", ".join(company_authors) if company_authors else "N/A",
-            "Company Affiliation(s)": ", ".join(company_affiliations) if company_affiliations else "N/A",
-            "Corresponding Author Email": extract_corresponding_author_email(paper.get("elocationid", ""))
+def fetch_article_details(pubmed_ids: list) -> list:
+    """Fetch detailed information for a list of PubMed IDs."""
+    if not pubmed_ids:
+        return []
+
+    handle = Entrez.efetch(db="pubmed", id=",".join(pubmed_ids), retmode="xml", api_key=API_KEY)
+    articles = ET.parse(handle).getroot()
+
+    results = []
+    for article in articles.findall(".//PubmedArticle"):
+        pmid = article.find(".//PMID").text
+        title = article.find(".//ArticleTitle").text if article.find(".//ArticleTitle") is not None else "N/A"
+        pub_date = article.find(".//PubDate/Year").text if article.find(".//PubDate/Year") is not None else "N/A"
+        authors, affiliations = extract_authors_and_affiliations(article)
+
+        results.append({
+            "PubmedID": pmid,
+            "Title": title,
+            "Publication Date": pub_date,
+            "Non-academic Author(s)": ", ".join(authors) if authors else "N/A",
+            "Company Affiliation(s)": ", ".join(affiliations) if affiliations else "N/A",
+            "Corresponding Author Email": extract_corresponding_author_email(article) or "N/A"
         })
+    return results
 
-    return papers
+def extract_authors_and_affiliations(article) -> tuple:
+    """Extract non-academic authors and their company affiliations."""
+    authors = []
+    affiliations = set()
 
-def extract_company_authors(authors):
-    """Identify authors affiliated with non-academic institutions."""
-    company_authors = []
-    company_affiliations = []
+    # Define academic keywords to exclude
+    ACADEMIC_KEYWORDS = ["university", "college", "hospital", "institute", "school", "research center"]
 
-    for author in authors:
-        name = author.get("name", "Unknown")
-        affiliation = author.get("affiliation", "")
+    for author in article.findall(".//Author"):
+        last_name = author.find("LastName")
+        fore_name = author.find("ForeName")
+        full_name = f"{fore_name.text} {last_name.text}" if fore_name is not None and last_name is not None else "Unknown"
 
-        if affiliation and not re.search(r"university|college|institute|school", affiliation, re.I):
-            company_authors.append(name)
-            company_affiliations.append(affiliation)
+        aff_element = author.find(".//Affiliation")
+        affiliation = aff_element.text.lower() if aff_element is not None else ""
 
-    return company_authors, company_affiliations
+        # Exclude authors if their affiliation contains academic keywords
+        if affiliation and not any(keyword in affiliation for keyword in ACADEMIC_KEYWORDS):
+            authors.append(full_name)
+            affiliations.add(affiliation)
 
-def extract_corresponding_author_email(elocationid):
-    """Extract email if available (heuristic method)."""
-    email_match = re.search(r"([\w\.-]+@[\w\.-]+\.\w+)", elocationid)
-    return email_match.group(1) if email_match else "N/A"
+    return authors, affiliations
 
-def save_to_csv(data, filename="results.csv"):
-    """Save fetched data to a CSV file."""
+
+def extract_corresponding_author_email(article) -> str:
+    """Extract corresponding author's email if available."""
+    for affiliation in article.findall(".//Affiliation"):
+        email_match = re.search(r"([\w\.-]+@[\w\.-]+\.\w+)", affiliation.text if affiliation.text else "")
+        if email_match:
+            return email_match.group(1)
+    return ""
+
+def save_to_csv(data: list, filename: str = "results.csv"):
+    """Save results to a CSV file."""
     df = pd.DataFrame(data)
     df.to_csv(filename, index=False)
