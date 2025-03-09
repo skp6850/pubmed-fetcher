@@ -1,11 +1,45 @@
-This tool searches PubMed for research papers using the PubMed API, extracts key details, and filters out academic-only papers.
+# PubMed Papers Fetcher
 
-🔹 Features:
-✔ Fetches up to 100 PubMed papers at a time.
-✔ Filters only industry-affiliated authors (biotech/pharma companies).
-✔ Excludes academic authors (universities, hospitals, research institutes).
-✔ Supports searching by year or range (e.g., 2020-2023).
-✔ Saves results to CSV file.
+This Python program fetches research papers from PubMed based on a user-specified query. It filters for papers that have at least one author affiliated with a pharmaceutical or biotech company and outputs the results as a CSV file (or prints to the console).
+
+## Features
+
+- **Source of Papers:** Uses the PubMed API (E-utilities: esearch and efetch).
+- **Filtering:** Identifies non-academic authors using simple heuristics:
+  - Non-academic affiliations are determined by the absence of keywords such as `University`, `College`, `Institute`, `Hospital`, or `School`.
+  - Company affiliations are identified by keywords like `pharma`, `pharmaceutical`, `biotech`, `inc`, etc.
+- **Output:** CSV with columns:
+  - PubmedID
+  - Title
+  - Publication Date
+  - Non-academic Author(s)
+  - Company Affiliation(s)
+  - Corresponding Author Email
+- **Command-line Options:**
+  - `-h` / `--help`: Display usage instructions.
+  - `-d` / `--debug`: Print debug information.
+  - `-f` / `--file`: Specify the filename to save the CSV results.
+- **Code Organization:**
+  - The logic is split into a module (`pubmed_fetcher.py`) and a CLI entry point (`main.py`).
+- **Environment & Dependencies:**
+  - Managed with [Poetry](https://python-poetry.org/).
+  - To install dependencies, run: `poetry install`
+- **Executable Command:**
+  - The project is configured (via `pyproject.toml`) to expose an executable command `get-papers-list` after installation.
+- **Bonus:**
+  - The module is separated from the CLI.
+  - (Optionally, you can publish the module on TestPyPI.)
+
+## Setup and Execution
+
+1. **Clone the Repository:**
+
+   ```bash
+   git clone https://github.com/yourusername/pubmed_papers.git
+   cd pubmed_papers
+
+
+
 
 
 
