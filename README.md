@@ -1,3 +1,17 @@
+This tool searches PubMed for research papers using the PubMed API, extracts key details, and filters out academic-only papers.
+
+🔹 Features:
+✔ Fetches up to 100 PubMed papers at a time.
+✔ Filters only industry-affiliated authors (biotech/pharma companies).
+✔ Excludes academic authors (universities, hospitals, research institutes).
+✔ Supports searching by year or range (e.g., 2020-2023).
+✔ Saves results to CSV file.
+
+
+
+
+
+
 Copyright (c) 2018 The Python Packaging Authority
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
