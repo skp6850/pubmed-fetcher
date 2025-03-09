@@ -135,13 +135,6 @@ poetry publish
 This project is licensed under the **MIT License**.  
 
 ---
-
-## **🎯 Now, Fetch Your First Research Paper! 🚀**  
-Let me know if you need any refinements! 😊
-
-
-
-
 Copyright (c) 2018 The Python Packaging Authority
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
