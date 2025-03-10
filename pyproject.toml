@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "pubmed-fetcher-sk2002"
+name = "pubmed-fetcher-sk172002"
 version = "0.1.0"
 description = "A tool by Sanjay for fetching papers from PubMed"
 authors = ["sxnjayy <104524087+skp6850@users.noreply.github.com>"]  # 🔹 Fix: Authors must be a string
