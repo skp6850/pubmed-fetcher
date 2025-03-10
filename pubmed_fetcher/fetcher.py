@@ -5,8 +5,8 @@ import pandas as pd
 import re
 
 # Set your email (mandatory for using Entrez)
-Entrez.email = "skp68500@gmail.com"
-API_KEY = "a30a3cdded67bc4c65592abfad40aa57b509"  # Optional but recommended
+Entrez.email = "use_your_id@gmail.com"
+API_KEY = "API_FROM_NCBI"  # Optional but recommended
 
 def search_pubmed(query: str, start_year: int, end_year: int = None, max_results: int = 100) -> list:
     """Search PubMed for articles published in a specific year or date range and return a list of PMIDs."""
